@@ -32,12 +32,15 @@ class Layer:
         
         return np.array(outputs)
 
-# create a layer with 3 neurons, each with 5 inputs
-layer = Layer(num_neurons=3, num_inputs_per_neuron=5)
+# create two layers
+hidden_layer = Layer(num_neurons=3, num_inputs_per_neuron=5)
+output_layer = Layer(num_neurons=1, num_inputs_per_neuron=3)
 
 # test input
 inputs = np.array([0, 1, 1, 1, 0])
 
-output = layer.forward(inputs)
+hidden_output = hidden_layer.forward(inputs)
+output = output_layer.forward(hidden_output)
+
 
 print(f'Layer Output: {output}')
