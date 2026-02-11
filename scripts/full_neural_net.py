@@ -6,7 +6,6 @@ import matplotlib.pyplot as plt
 def sigmoid(x):
     return 1 / (1 + np.exp(-x))
 
-
 def sigmoid_derivative(output):
     return output * (1 - output)
 
@@ -16,6 +15,13 @@ def relu(x):
 
 def relu_derivative(output):
     return (output > 0).astype(float)
+
+
+def tanh(x):
+    return np.tanh(x)
+
+def tanh_derivative(output):
+    return 1 - output ** 2
 
 
 class NeuralNetwork:
@@ -42,10 +48,10 @@ class NeuralNetwork:
     def forward(self, x):
 
         self.z1 = self.W1 @ x + self.b1
-        self.a1 = relu(self.z1)
+        self.a1 = tanh(self.z1)
 
         self.z2 = self.W2 @ self.a1 + self.b2
-        self.output = sigmoid(self.z2)
+        self.output = self.z2
 
         return self.output
 
@@ -55,12 +61,12 @@ class NeuralNetwork:
 
         prediction = self.output
 
-        delta2 = (prediction - target) * sigmoid_derivative(prediction)
+        delta2 = (prediction - target)
 
         dW2 = delta2.reshape(-1, 1) @ self.a1.reshape(1, -1)
         db2 = delta2
 
-        delta1 = (self.W2.T @ delta2) * relu_derivative(self.a1)
+        delta1 = (self.W2.T @ delta2) * tanh_derivative(self.a1)
 
         dW1 = delta1.reshape(-1, 1) @ x.reshape(1, -1)
         db1 = delta1
@@ -127,10 +133,10 @@ y = np.sin(X)
 
 # create network
 # nn = NeuralNetwork(input_size=2, hidden_size=2, output_size=1)
-nn = NeuralNetwork(input_size=1, hidden_size=10, output_size=1, learning_rate=0.01)
+nn = NeuralNetwork(input_size=1, hidden_size=100, output_size=1, learning_rate=0.01)
 
 # train
-nn.train(X, y, epochs=10000)
+nn.train(X, y, epochs=10_000)
 
 
 # test
