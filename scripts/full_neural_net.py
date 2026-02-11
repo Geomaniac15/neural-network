@@ -90,14 +90,16 @@ class NeuralNetwork:
 
             A_prev = self.activations[i]
 
+            W_current = self.weights[i]
+
             dW = (delta.T @ A_prev) / batch_size
             db = np.mean(delta, axis=0)
 
+            if i > 0:
+                delta = (delta @ W_current) * tanh_derivative(A_prev)
+
             self.weights[i] -= self.lr * dW
             self.biases[i] -= self.lr * db
-
-            if i > 0:
-                delta = (delta @ self.weights[i]) * tanh_derivative(A_prev)
 
     # training loop
     def train(self, X, y, epochs):
