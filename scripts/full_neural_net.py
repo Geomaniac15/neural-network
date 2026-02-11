@@ -1,4 +1,5 @@
 import numpy as np
+import matplotlib.pyplot as plt
 
 
 # activation functions
@@ -98,32 +99,46 @@ class NeuralNetwork:
 # -----------------------
 
 # XOR dataset
-X = np.array([
-    [0,0],
-    [0,1],
-    [1,0],
-    [1,1]
-])
+# X = np.array([
+#     [0,0],
+#     [0,1],
+#     [1,0],
+#     [1,1]
+# ])
 
-y = np.array([
-    [0],
-    [1],
-    [1],
-    [0]
-])
+# y = np.array([
+#     [0],
+#     [1],
+#     [1],
+#     [0]
+# ])
+
+# sin wave dataset
+X = np.linspace(-np.pi, np.pi, 100).reshape(-1, 1)
+y = np.sin(X)
 
 
 # create network
-nn = NeuralNetwork(input_size=2, hidden_size=2, output_size=1)
-
+# nn = NeuralNetwork(input_size=2, hidden_size=2, output_size=1)
+nn = NeuralNetwork(input_size=1, hidden_size=10, output_size=1, learning_rate=0.01)
 
 # train
 nn.train(X, y, epochs=10000)
 
 
 # test
-print("\nFinal predictions:")
+# print("\nFinal predictions:")
 
-for x in X:
-    prediction = nn.predict(x)
-    print(f"{x} -> {prediction[0]:.6f}")
+# get predictions for all training data
+predictions = np.array([nn.predict(x)[0] for x in X])
+
+# plot
+plt.figure(figsize=(10, 6))
+plt.plot(X, y, 'b-', label='Actual sine wave', linewidth=2)
+plt.plot(X, predictions, 'r--', label='Neural network prediction', linewidth=2)
+plt.xlabel('x')
+plt.ylabel('y')
+plt.title('Sine Wave: Actual vs Neural Network Prediction')
+plt.legend()
+plt.grid(True, alpha=0.3)
+plt.show()
