@@ -29,64 +29,75 @@ def tanh_derivative(output):
 
 class NeuralNetwork:
 
-    def __init__(self, input_size, hidden_size, output_size, learning_rate=0.1):
+    def __init__(self, layer_sizes, learning_rate=0.1):
 
-        # store sizes
-        self.input_size = input_size
-        self.hidden_size = hidden_size
-        self.output_size = output_size
-
-        # learning rate
+        self.layer_sizes = layer_sizes
         self.lr = learning_rate
 
-        # initialise weights and biases
-        self.W1 = np.random.randn(hidden_size, input_size)
-        self.b1 = np.random.randn(hidden_size)
+        self.weights = []
+        self.biases = []
 
-        self.W2 = np.random.randn(output_size, hidden_size)
-        self.b2 = np.random.randn(output_size)
+        for i in range(len(layer_sizes) - 1):
+
+            # store sizes
+            input_size = layer_sizes[i]
+            output_size = layer_sizes[i+1]
+
+            # initialise weights and biases
+            W = np.random.randn(output_size, input_size)
+            b = np.random.randn(output_size)
+
+            self.weights.append(W)
+            self.biases.append(b)
 
     # forward propagation
-    def forward(self, x):
-        # x shape: (batch_size, input_size) or (input_size,) for single sample
-        if x.ndim == 1:
-            x = x.reshape(1, -1)
+    def forward(self, X):
 
-        self.z1 = x @ self.W1.T + self.b1
-        self.a1 = tanh(self.z1)
+        if X.ndim == 1:
+            X = X.reshape(1, -1)
 
-        self.z2 = self.a1 @ self.W2.T + self.b2
-        self.output = self.z2
+        self.activations = [X]
+        self.z_values = []
 
-        return self.output
+        A = X
+
+        for i in range(len(self.weights)):
+
+            W = self.weights[i]
+            b = self.biases[i]
+
+            Z = A @ W.T + b
+            self.z_values.append(Z)
+
+            # last layer = linear
+            if i == len(self.weights) - 1:
+                A = Z
+            else:
+                A = tanh(Z)
+
+            self.activations.append(A)
+
+        return A
 
     # backpropagation
-    def backward(self, x, target):
-        # x shape: (batch_size, input_size), target shape: (batch_size, output_size)
-        if x.ndim == 1:
-            x = x.reshape(1, -1)
-        if target.ndim == 1:
-            target = target.reshape(1, -1)
+    def backward(self, X, y):
+        
+        batch_size = X.shape[0]
 
-        batch_size = x.shape[0]
-        prediction = self.output
+        delta = self.activations[-1] - y
 
-        delta2 = prediction - target
+        for i in reversed(range(len(self.weights))):
 
-        dW2 = delta2.T @ self.a1 / batch_size
-        db2 = np.mean(delta2, axis=0)
+            A_prev = self.activations[i]
 
-        delta1 = delta2 @ self.W2 * tanh_derivative(self.a1)
+            dW = (delta.T @ A_prev) / batch_size
+            db = np.mean(delta, axis=0)
 
-        dW1 = delta1.T @ x / batch_size
-        db1 = np.mean(delta1, axis=0)
+            self.weights[i] -= self.lr * dW
+            self.biases[i] -= self.lr * db
 
-        # update weights
-        self.W2 -= self.lr * dW2
-        self.b2 -= self.lr * db2
-
-        self.W1 -= self.lr * dW1
-        self.b1 -= self.lr * db1
+            if i > 0:
+                delta = (delta @ self.weights[i]) * tanh_derivative(A_prev)
 
     # training loop
     def train(self, X, y, epochs):
@@ -138,7 +149,8 @@ y = np.sin(X)
 
 # create network
 # nn = NeuralNetwork(input_size=2, hidden_size=2, output_size=1)
-nn = NeuralNetwork(input_size=1, hidden_size=100, output_size=1, learning_rate=0.01)
+#nn = NeuralNetwork(input_size=1, hidden_size=100, output_size=1, learning_rate=0.01)
+nn = NeuralNetwork([1, 20, 20, 20, 1])
 
 # train
 nn.train(X, y, epochs=10_000)
