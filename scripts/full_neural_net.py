@@ -11,6 +11,13 @@ def sigmoid_derivative(output):
     return output * (1 - output)
 
 
+def relu(x):
+    return np.maximum(0, x)
+
+def relu_derivative(output):
+    return (output > 0).astype(float)
+
+
 class NeuralNetwork:
 
     def __init__(self, input_size, hidden_size, output_size, learning_rate=0.1):
@@ -35,7 +42,7 @@ class NeuralNetwork:
     def forward(self, x):
 
         self.z1 = self.W1 @ x + self.b1
-        self.a1 = sigmoid(self.z1)
+        self.a1 = relu(self.z1)
 
         self.z2 = self.W2 @ self.a1 + self.b2
         self.output = sigmoid(self.z2)
@@ -53,7 +60,7 @@ class NeuralNetwork:
         dW2 = delta2.reshape(-1, 1) @ self.a1.reshape(1, -1)
         db2 = delta2
 
-        delta1 = (self.W2.T @ delta2) * sigmoid_derivative(self.a1)
+        delta1 = (self.W2.T @ delta2) * relu_derivative(self.a1)
 
         dW1 = delta1.reshape(-1, 1) @ x.reshape(1, -1)
         db1 = delta1
