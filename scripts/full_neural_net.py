@@ -46,11 +46,14 @@ class NeuralNetwork:
 
     # forward propagation
     def forward(self, x):
-
-        self.z1 = self.W1 @ x + self.b1
+        # x shape: (batch_size, input_size) or (input_size,) for single sample
+        if x.ndim == 1:
+            x = x.reshape(1, -1)
+        
+        self.z1 = x @ self.W1.T + self.b1
         self.a1 = tanh(self.z1)
 
-        self.z2 = self.W2 @ self.a1 + self.b2
+        self.z2 = self.a1 @ self.W2.T + self.b2
         self.output = self.z2
 
         return self.output
@@ -58,18 +61,24 @@ class NeuralNetwork:
 
     # backpropagation
     def backward(self, x, target):
+        # x shape: (batch_size, input_size), target shape: (batch_size, output_size)
+        if x.ndim == 1:
+            x = x.reshape(1, -1)
+        if target.ndim == 1:
+            target = target.reshape(1, -1)
 
+        batch_size = x.shape[0]
         prediction = self.output
 
         delta2 = (prediction - target)
 
-        dW2 = delta2.reshape(-1, 1) @ self.a1.reshape(1, -1)
-        db2 = delta2
+        dW2 = delta2.T @ self.a1 / batch_size
+        db2 = np.mean(delta2, axis=0)
 
-        delta1 = (self.W2.T @ delta2) * tanh_derivative(self.a1)
+        delta1 = delta2 @ self.W2 * tanh_derivative(self.a1)
 
-        dW1 = delta1.reshape(-1, 1) @ x.reshape(1, -1)
-        db1 = delta1
+        dW1 = delta1.T @ x / batch_size
+        db1 = np.mean(delta1, axis=0)
 
         # update weights
         self.W2 -= self.lr * dW2
@@ -84,27 +93,24 @@ class NeuralNetwork:
 
         for epoch in range(epochs):
 
-            total_loss = 0
+            # forward pass on entire batch
+            prediction = self.forward(X)
 
-            for i in range(len(X)):
+            # calculate loss for entire batch
+            loss = 0.5 * np.mean((prediction - y) ** 2)
 
-                x = X[i]
-                target = y[i]
-
-                prediction = self.forward(x)
-
-                loss = 0.5 * (prediction - target) ** 2
-                total_loss += loss
-
-                self.backward(x, target)
+            # backward pass on entire batch
+            self.backward(X, y)
 
             if epoch % 1000 == 0:
-                print(f"Epoch {epoch}, Loss: {total_loss[0]:.6f}")
+                print(f"Epoch {epoch}, Loss: {loss:.6f}")
 
 
     # prediction function
     def predict(self, x):
-        return self.forward(x)
+        output = self.forward(x)
+        # return scalar for single sample, array for batch
+        return output[0] if output.shape[0] == 1 else output
 
 
 # -----------------------
@@ -143,7 +149,7 @@ nn.train(X, y, epochs=10_000)
 # print("\nFinal predictions:")
 
 # get predictions for all training data
-predictions = np.array([nn.predict(x)[0] for x in X])
+predictions = nn.predict(X)
 
 # plot
 plt.figure(figsize=(10, 6))
