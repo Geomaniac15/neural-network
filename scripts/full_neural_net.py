@@ -6,12 +6,14 @@ import matplotlib.pyplot as plt
 def sigmoid(x):
     return 1 / (1 + np.exp(-x))
 
+
 def sigmoid_derivative(output):
     return output * (1 - output)
 
 
 def relu(x):
     return np.maximum(0, x)
+
 
 def relu_derivative(output):
     return (output > 0).astype(float)
@@ -20,8 +22,9 @@ def relu_derivative(output):
 def tanh(x):
     return np.tanh(x)
 
+
 def tanh_derivative(output):
-    return 1 - output ** 2
+    return 1 - output**2
 
 
 class NeuralNetwork:
@@ -43,13 +46,12 @@ class NeuralNetwork:
         self.W2 = np.random.randn(output_size, hidden_size)
         self.b2 = np.random.randn(output_size)
 
-
     # forward propagation
     def forward(self, x):
         # x shape: (batch_size, input_size) or (input_size,) for single sample
         if x.ndim == 1:
             x = x.reshape(1, -1)
-        
+
         self.z1 = x @ self.W1.T + self.b1
         self.a1 = tanh(self.z1)
 
@@ -57,7 +59,6 @@ class NeuralNetwork:
         self.output = self.z2
 
         return self.output
-
 
     # backpropagation
     def backward(self, x, target):
@@ -70,7 +71,7 @@ class NeuralNetwork:
         batch_size = x.shape[0]
         prediction = self.output
 
-        delta2 = (prediction - target)
+        delta2 = prediction - target
 
         dW2 = delta2.T @ self.a1 / batch_size
         db2 = np.mean(delta2, axis=0)
@@ -86,7 +87,6 @@ class NeuralNetwork:
 
         self.W1 -= self.lr * dW1
         self.b1 -= self.lr * db1
-
 
     # training loop
     def train(self, X, y, epochs):
@@ -104,7 +104,6 @@ class NeuralNetwork:
 
             if epoch % 1000 == 0:
                 print(f"Epoch {epoch}, Loss: {loss:.6f}")
-
 
     # prediction function
     def predict(self, x):
@@ -153,11 +152,11 @@ predictions = nn.predict(X)
 
 # plot
 plt.figure(figsize=(10, 6))
-plt.plot(X, y, 'b-', label='Actual sine wave', linewidth=2)
-plt.plot(X, predictions, 'r--', label='Neural network prediction', linewidth=2)
-plt.xlabel('x')
-plt.ylabel('y')
-plt.title('Sine Wave: Actual vs Neural Network Prediction')
+plt.plot(X, y, "b-", label="Actual sine wave", linewidth=2)
+plt.plot(X, predictions, "r--", label="Neural network prediction", linewidth=2)
+plt.xlabel("x")
+plt.ylabel("y")
+plt.title("Sine Wave: Actual vs Neural Network Prediction")
 plt.legend()
 plt.grid(True, alpha=0.3)
 plt.show()

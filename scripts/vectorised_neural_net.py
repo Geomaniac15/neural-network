@@ -1,13 +1,16 @@
 import numpy as np
 
+
 # activation functions
 def sigmoid(x):
     # squashes x to between 0 and 1
     return 1 / (1 + np.exp(-x))
 
+
 def sigmoid_derivative(sigmoid_output):
     # derivative of sigmoid function
     return sigmoid_output * (1 - sigmoid_output)
+
 
 input_size = 2
 hidden_size = 2
@@ -21,19 +24,9 @@ W2 = np.random.randn(output_size, hidden_size)
 b2 = np.random.randn(output_size)
 
 # XOR dataset
-X = np.array([
-    [0, 0],
-    [0, 1],
-    [1, 0],
-    [1, 1]
-])
+X = np.array([[0, 0], [0, 1], [1, 0], [1, 1]])
 
-y = np.array([
-    [0],
-    [1],
-    [1],
-    [0]
-])
+y = np.array([[0], [1], [1], [0]])
 
 learning_rate = 0.5
 
@@ -81,7 +74,6 @@ for epoch in range(10000):
         W1 -= learning_rate * dW1
         b1 -= learning_rate * db1
 
-    
     if epoch % 1000 == 0:
         print(f"Epoch {epoch}, Loss: {total_loss[0]:.6f}")
 
