@@ -42,53 +42,92 @@ class Layer:
             outputs.append(output)
         
         return np.array(outputs)
+    
+    def get_outputs(self):
+        return np.array([
+            neuron.output
+            for neuron in self.neurons
+        ])
 
 # --------------------
 # CREATE THE NETWORK
 # --------------------
 
 # create two layers
-hidden_layer = Layer(num_neurons=3, num_inputs_per_neuron=5)
-output_layer = Layer(num_neurons=1, num_inputs_per_neuron=3)
+hidden_layer = Layer(num_neurons=2, num_inputs_per_neuron=2)
+output_layer = Layer(num_neurons=1, num_inputs_per_neuron=2)
 
 # training data
-inputs = np.array([0, 1, 1, 1, 0])
-target = np.array([1])  # we want the output to be 1 for this input
+dataset = [
+    (np.array([0,0]), 0),
+    (np.array([0,1]), 1),
+    (np.array([1,0]), 1),
+    (np.array([1,1]), 0),
+]
 
-learning_rate = 0.1
+learning_rate = 0.5
 
 # --------------------
 # TRAINING LOOP
 # --------------------
 
-for epoch in range(1000):
+for epoch in range(10_000):
+    
+    total_loss = 0
 
-    # forward pass
-    hidden_output = hidden_layer.forward(inputs)
-    output = output_layer.forward(hidden_output)
+    for inputs, target in dataset:
+        
+        # forward pass
+        hidden_output = hidden_layer.forward(inputs)
+        output = output_layer.forward(hidden_output)
 
-    prediction = output[0]
+        prediction = output[0]
 
-    # calculate loss (mean squared error)
-    loss = 0.5 * (prediction - target[0]) ** 2
+        # calculate loss (mean squared error)
+        loss = 0.5 * (prediction - target) ** 2
+        total_loss += loss
 
-    # get output neuron
-    output_neuron = output_layer.neurons[0]
+        # backpropagation for output layer
+        output_neuron = output_layer.neurons[0]
 
-    # backpropagation for output layer
-    delta_output = (prediction - target[0]) * sigmoid_derivative(prediction)
+        delta_output = (
+            (prediction - target)
+            * sigmoid_derivative(prediction)
+        )
 
-    # gradients
-    dW = delta_output * output_neuron.inputs
-    dB = delta_output
+        # store old weights before updating
+        old_weights = output_neuron.weights.copy()
 
-    # update weights and bias for output neuron
-    output_neuron.weights -= learning_rate * dW
-    output_neuron.bias -= learning_rate * dB
+        # update weights and bias for output neuron
+        output_neuron.weights -= (
+            learning_rate
+            * delta_output
+            * output_neuron.inputs
+        )
 
-    if epoch % 100 == 0:
+        output_neuron.bias -= learning_rate * delta_output
+
+        # backpropagation for hidden layer
+
+        for i, hidden_neuron in enumerate(hidden_layer.neurons):
+            delta_hidden = (
+                delta_output
+                * old_weights[i]
+                * sigmoid_derivative(hidden_neuron.output)
+            )
+
+            # update weights and bias for hidden neuron
+            hidden_neuron.weights -= (
+                learning_rate
+                * delta_hidden
+                * hidden_neuron.inputs
+            )
+
+            hidden_neuron.bias -= learning_rate * delta_hidden
+
+    if epoch % 1000 == 0:
         print(f"Epoch {epoch}")
-        print(f"Prediction: {prediction:.6f}")
+        # print(f"Prediction: {prediction:.6f}")
         print(f"Loss: {loss:.6f}")
         print("---------------------")
 
@@ -96,7 +135,10 @@ for epoch in range(1000):
 # FINAL LOOP
 # --------------------
 
-hidden_output = hidden_layer.forward(inputs)
-final_output = output_layer.forward(hidden_output)
+print('\nFinal predictions after training:')
 
-print(f'Final prediction after training: {final_output[0]:.6f}')
+for inputs, target in dataset:
+    hidden_output = hidden_layer.forward(inputs)
+    final_output = output_layer.forward(hidden_output)
+
+    print(f'Input: {inputs}, Target: {target}, Prediction: {final_output[0]:.6f}')
