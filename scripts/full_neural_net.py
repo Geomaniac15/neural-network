@@ -60,7 +60,8 @@ class NeuralNetwork:
             # initialise weights and biases
             # W = np.random.randn(output_size, input_size)
             # b = np.random.randn(output_size)
-            W = np.random.randn(output_size, input_size) * np.sqrt(1 / input_size) # He initialization
+            # W = np.random.randn(output_size, input_size) * np.sqrt(1 / input_size) # He initialization
+            W = np.random.randn(output_size, input_size) * np.sqrt(2 /input_size)
             b = np.zeros(output_size)
 
             self.weights.append(W)
@@ -89,7 +90,7 @@ class NeuralNetwork:
             if i == len(self.weights) - 1:
                 A = softmax(Z)
             else:
-                A = tanh(Z)
+                A = relu(Z)
 
             self.activations.append(A)
 
@@ -112,15 +113,27 @@ class NeuralNetwork:
             db = np.mean(delta, axis=0)
 
             if i > 0:
-                delta = (delta @ W_current) * tanh_derivative(A_prev)
+                delta = (delta @ W_current) * relu_derivative(A_prev)
 
             self.weights[i] -= self.lr * dW
             self.biases[i] -= self.lr * db
 
     # training loop
-    def train(self, X, y, epochs):
+    def train(self, X, y, epochs, batch_size=64):
 
         for epoch in range(epochs):
+            
+            indices = np.random.permutation(len(X))
+            X = X[indices]
+            y = y[indices]
+
+            for i in range(0, len(X), batch_size):
+
+                X_batch = X[i:i+batch_size]
+                y_batch = y[i:i+batch_size]
+
+                prediction = self.forward(X_batch)
+                self.backward(X_batch, y_batch)
 
             # forward pass on entire batch
             prediction = self.forward(X)
@@ -128,9 +141,6 @@ class NeuralNetwork:
             # calculate loss for entire batch
             # loss = 0.5 * np.mean((prediction - y) ** 2)
             loss = -np.mean(np.sum(y * np.log(prediction + 1e-8), axis=1))
-
-            # backward pass on entire batch
-            self.backward(X, y)
 
             if epoch % 10 == 0:
                 print(f"Epoch {epoch}, Loss: {loss:.6f}")
