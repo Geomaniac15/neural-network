@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import math
 from sklearn.datasets import fetch_openml
+import time
 
 mnist = fetch_openml('mnist_784', version=1)
 
@@ -119,7 +120,7 @@ class NeuralNetwork:
             self.biases[i] -= self.lr * db
 
     # training loop
-    def train(self, X, y, epochs, batch_size=64):
+    def train(self, X, y, epochs, batch_size=32):
 
         for epoch in range(epochs):
             
@@ -175,6 +176,8 @@ class NeuralNetwork:
 # X = np.linspace(-np.pi, np.pi, 100).reshape(-1, 1)
 # y = np.sin(X)
 
+start_time = time.time()
+
 # MNIST dataset
 # convert to NumPy to avoid pandas indexing/keepdims issues
 X = mnist.data.to_numpy().astype(np.float32) / 255.0
@@ -209,6 +212,11 @@ true_labels = np.argmax(y_test, axis=1)
 accuracy = np.mean(predicted_labels == true_labels)
 
 print(f"Test Accuracy: {accuracy:.4f}")
+
+end_time = time.time()
+elapsed_time = end_time - start_time
+
+print(f'Elapsed time: {elapsed_time}')
 
 # plot
 # plt.figure(figsize=(10, 6))
