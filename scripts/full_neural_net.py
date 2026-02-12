@@ -1,5 +1,9 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import math
+from sklearn.datasets import fetch_openml
+
+mnist = fetch_openml('mnist_784', version=1)
 
 
 # activation functions
@@ -26,6 +30,16 @@ def tanh(x):
 def tanh_derivative(output):
     return 1 - output**2
 
+def softmax(x):
+    x = np.asarray(x)
+    exps = np.exp(x - np.max(x, axis=1, keepdims=True))
+    return exps / np.sum(exps, axis=1, keepdims=True)
+
+def one_hot(y, num_classes=10):
+    y = np.asarray(y, dtype=int)
+    result = np.zeros((len(y), num_classes))
+    result[np.arange(len(y)), y] = 1
+    return result
 
 class NeuralNetwork:
 
@@ -71,7 +85,7 @@ class NeuralNetwork:
 
             # last layer = linear
             if i == len(self.weights) - 1:
-                A = Z
+                A = softmax(Z)
             else:
                 A = tanh(Z)
 
@@ -110,12 +124,13 @@ class NeuralNetwork:
             prediction = self.forward(X)
 
             # calculate loss for entire batch
-            loss = 0.5 * np.mean((prediction - y) ** 2)
+            # loss = 0.5 * np.mean((prediction - y) ** 2)
+            loss = -np.mean(np.sum(y * np.log(prediction + 1e-8), axis=1))
 
             # backward pass on entire batch
             self.backward(X, y)
 
-            if epoch % 1000 == 0:
+            if epoch % 10 == 0:
                 print(f"Epoch {epoch}, Loss: {loss:.6f}")
 
     # prediction function
@@ -145,32 +160,71 @@ class NeuralNetwork:
 # ])
 
 # sin wave dataset
-X = np.linspace(-np.pi, np.pi, 100).reshape(-1, 1)
-y = np.sin(X)
+# X = np.linspace(-np.pi, np.pi, 100).reshape(-1, 1)
+# y = np.sin(X)
 
+# MNIST dataset
+# convert to NumPy to avoid pandas indexing/keepdims issues
+X = mnist.data.to_numpy().astype(np.float32) / 255.0
+y = mnist.target.to_numpy().astype(np.int32)
+
+y_onehot = one_hot(y)
+
+X_train = X[:60000]
+y_train = y_onehot[:60000]
+
+X_test = X[60000:]
+y_test = y_onehot[60000:]
 
 # create network
 # nn = NeuralNetwork(input_size=2, hidden_size=2, output_size=1)
 #nn = NeuralNetwork(input_size=1, hidden_size=100, output_size=1, learning_rate=0.01)
-nn = NeuralNetwork([1, 20, 20, 20, 1])
+nn = NeuralNetwork([784, 128, 64, 10], learning_rate=0.01)
 
 # train
-nn.train(X, y, epochs=10_000)
+nn.train(X_train[:10000], y_train[:10000], epochs=50)
 
 
 # test
 # print("\nFinal predictions:")
 
-# get predictions for all training data
-predictions = nn.predict(X)
+# get predictions for test data
+predictions = nn.predict(X_test)
+
+predicted_labels = np.argmax(predictions, axis=1)
+true_labels = np.argmax(y_test, axis=1)
+
+accuracy = np.mean(predicted_labels == true_labels)
+
+print(f"Test Accuracy: {accuracy:.4f}")
 
 # plot
-plt.figure(figsize=(10, 6))
-plt.plot(X, y, "b-", label="Actual sine wave", linewidth=2)
-plt.plot(X, predictions, "r--", label="Neural network prediction", linewidth=2)
-plt.xlabel("x")
-plt.ylabel("y")
-plt.title("Sine Wave: Actual vs Neural Network Prediction")
-plt.legend()
-plt.grid(True, alpha=0.3)
+# plt.figure(figsize=(10, 6))
+# plt.plot(X, y, "b-", label="Actual sine wave", linewidth=2)
+# plt.plot(X, predictions, "r--", label="Neural network prediction", linewidth=2)
+# plt.xlabel("x")
+# plt.ylabel("y")
+# plt.title("Sine Wave: Actual vs Neural Network Prediction")
+# plt.legend()
+# plt.grid(True, alpha=0.3)
+# plt.show()
+
+# show a grid of test images with predicted and true labels
+
+N = 20  # total images to display
+cols = 5
+rows = math.ceil(N / cols)
+fig, axes = plt.subplots(rows, cols, figsize=(cols * 2, rows * 2))
+axes = axes.ravel()
+
+for i in range(N):
+    img = X_test[i].reshape(28, 28)
+    axes[i].imshow(img, cmap="gray")
+    axes[i].set_title(f"P:{predicted_labels[i]} T:{true_labels[i]}")
+    axes[i].axis("off")
+
+for j in range(N, len(axes)):
+    axes[j].axis("off")
+
+plt.tight_layout()
 plt.show()
