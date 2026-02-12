@@ -4,7 +4,7 @@ import math
 from sklearn.datasets import fetch_openml
 import time
 
-mnist = fetch_openml('mnist_784', version=1)
+mnist = fetch_openml("mnist_784", version=1)
 
 
 # activation functions
@@ -31,16 +31,19 @@ def tanh(x):
 def tanh_derivative(output):
     return 1 - output**2
 
+
 def softmax(x):
     x = np.asarray(x)
     exps = np.exp(x - np.max(x, axis=1, keepdims=True))
     return exps / np.sum(exps, axis=1, keepdims=True)
+
 
 def one_hot(y, num_classes=10):
     y = np.asarray(y, dtype=int)
     result = np.zeros((len(y), num_classes))
     result[np.arange(len(y)), y] = 1
     return result
+
 
 class NeuralNetwork:
 
@@ -56,13 +59,13 @@ class NeuralNetwork:
 
             # store sizes
             input_size = layer_sizes[i]
-            output_size = layer_sizes[i+1]
+            output_size = layer_sizes[i + 1]
 
             # initialise weights and biases
             # W = np.random.randn(output_size, input_size)
             # b = np.random.randn(output_size)
             # W = np.random.randn(output_size, input_size) * np.sqrt(1 / input_size) # He initialization
-            W = np.random.randn(output_size, input_size) * np.sqrt(2 /input_size)
+            W = np.random.randn(output_size, input_size) * np.sqrt(2 / input_size)
             b = np.zeros(output_size)
 
             self.weights.append(W)
@@ -99,7 +102,7 @@ class NeuralNetwork:
 
     # backpropagation
     def backward(self, X, y):
-        
+
         batch_size = X.shape[0]
 
         delta = self.activations[-1] - y
@@ -123,15 +126,15 @@ class NeuralNetwork:
     def train(self, X, y, epochs, batch_size=32):
 
         for epoch in range(epochs):
-            
+
             indices = np.random.permutation(len(X))
             X = X[indices]
             y = y[indices]
 
             for i in range(0, len(X), batch_size):
 
-                X_batch = X[i:i+batch_size]
-                y_batch = y[i:i+batch_size]
+                X_batch = X[i : i + batch_size]
+                y_batch = y[i : i + batch_size]
 
                 prediction = self.forward(X_batch)
                 self.backward(X_batch, y_batch)
@@ -193,7 +196,7 @@ y_test = y_onehot[60000:]
 
 # create network
 # nn = NeuralNetwork(input_size=2, hidden_size=2, output_size=1)
-#nn = NeuralNetwork(input_size=1, hidden_size=100, output_size=1, learning_rate=0.01)
+# nn = NeuralNetwork(input_size=1, hidden_size=100, output_size=1, learning_rate=0.01)
 nn = NeuralNetwork([784, 256, 128, 10], learning_rate=0.01)
 
 # train
@@ -216,7 +219,7 @@ print(f"Test Accuracy: {accuracy:.4f}")
 end_time = time.time()
 elapsed_time = end_time - start_time
 
-print(f'Elapsed time: {elapsed_time}')
+print(f"Elapsed time: {elapsed_time}")
 
 # plot
 # plt.figure(figsize=(10, 6))
