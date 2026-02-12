@@ -58,8 +58,10 @@ class NeuralNetwork:
             output_size = layer_sizes[i+1]
 
             # initialise weights and biases
-            W = np.random.randn(output_size, input_size)
-            b = np.random.randn(output_size)
+            # W = np.random.randn(output_size, input_size)
+            # b = np.random.randn(output_size)
+            W = np.random.randn(output_size, input_size) * np.sqrt(1 / input_size) # He initialization
+            b = np.zeros(output_size)
 
             self.weights.append(W)
             self.biases.append(b)
@@ -182,7 +184,7 @@ y_test = y_onehot[60000:]
 nn = NeuralNetwork([784, 128, 64, 10], learning_rate=0.01)
 
 # train
-nn.train(X_train[:10000], y_train[:10000], epochs=50)
+nn.train(X_train[:10000], y_train[:10000], epochs=1_000)
 
 
 # test
