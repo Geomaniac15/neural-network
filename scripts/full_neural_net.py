@@ -142,7 +142,7 @@ class NeuralNetwork:
             # loss = 0.5 * np.mean((prediction - y) ** 2)
             loss = -np.mean(np.sum(y * np.log(prediction + 1e-8), axis=1))
 
-            if epoch % 10 == 0:
+            if epoch % 1 == 0:
                 print(f"Epoch {epoch}, Loss: {loss:.6f}")
 
     # prediction function
@@ -191,10 +191,10 @@ y_test = y_onehot[60000:]
 # create network
 # nn = NeuralNetwork(input_size=2, hidden_size=2, output_size=1)
 #nn = NeuralNetwork(input_size=1, hidden_size=100, output_size=1, learning_rate=0.01)
-nn = NeuralNetwork([784, 128, 64, 10], learning_rate=0.01)
+nn = NeuralNetwork([784, 256, 128, 10], learning_rate=0.01)
 
 # train
-nn.train(X_train[:10000], y_train[:10000], epochs=1_000)
+nn.train(X_train, y_train, epochs=20)
 
 
 # test
